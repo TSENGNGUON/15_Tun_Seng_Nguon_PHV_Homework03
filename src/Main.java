@@ -17,6 +17,10 @@ public class Main {
         staffMembers.add(new Volunteer("Meng Sea", "BMC",0));
         staffMembers.add(new SalariedEmployee(" Sea", "BMC",300, 20));
         staffMembers.add(new HourlyEmployee(" Sea", "BMC",8, 10));
+        staffMembers.add(new HourlyEmployee(" Sea", "BMC",8, 10));
+        staffMembers.add(new HourlyEmployee(" Sea", "BMC",8, 10));
+        staffMembers.add(new HourlyEmployee(" Sea", "BMC",8, 10));
+        staffMembers.add(new HourlyEmployee(" Sea", "BMC",8, 10));
         while (true){
             Table menu = new Table(1, BorderStyle.UNICODE_BOX, ShownBorders.SURROUND_HEADER_AND_COLUMNS);
             menu.setColumnWidth(0, 80, 80);

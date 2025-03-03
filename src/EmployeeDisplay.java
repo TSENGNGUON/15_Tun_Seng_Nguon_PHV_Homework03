@@ -12,6 +12,7 @@ import java.util.Scanner;
 
 
 public class EmployeeDisplay {
+    private static final int PAGE_SIZE = 3;
 
     //Insert Employee Method
     public static void insertEmployee(@NotNull List<StaffMember> employees) {
@@ -88,7 +89,32 @@ public class EmployeeDisplay {
 
     }
     //Display Employee Method
-    public static void displayEmployee(@NotNull List<StaffMember> employees) {
+    public static void displayEmployee(List<StaffMember> employees) {
+        Scanner scanner = new Scanner(System.in);
+        int totalPages = (int) Math.ceil((double) employees.size() / PAGE_SIZE);
+        int currentPage = 1;
+
+        while (true) {
+            printPage(employees, currentPage, totalPages);
+            System.out.println("Options: 1.First Page 2.Next Page 3.Previous Page 4.Last Page 5.Exit");
+            System.out.print("Choose an option: ");
+            int choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1: currentPage = 1; break;
+                case 2: if (currentPage < totalPages) currentPage++; break;
+                case 3: if (currentPage > 1) currentPage--; break;
+                case 4: currentPage = totalPages; break;
+                case 5: return;
+                default: System.out.println("Invalid choice. Try again.");
+            }
+        }
+    }
+
+    private static void printPage(List<StaffMember> employees, int page, int totalPages) {
+        int start = (page - 1) * PAGE_SIZE;
+        int end = Math.min(start + PAGE_SIZE, employees.size());
+
         CellStyle centerAligned = new CellStyle(CellStyle.HorizontalAlign.center);
         Table table = new Table(9, BorderStyle.UNICODE_BOX, ShownBorders.ALL);
         table.setColumnWidth(0,20,20);
@@ -100,6 +126,7 @@ public class EmployeeDisplay {
         table.setColumnWidth(6,20,20);
         table.setColumnWidth(7,20,20);
         table.setColumnWidth(8,20,20);
+
         table.addCell("Type", centerAligned);
         table.addCell("ID", centerAligned);
         table.addCell("Name", centerAligned);
@@ -110,52 +137,45 @@ public class EmployeeDisplay {
         table.addCell("Rate", centerAligned);
         table.addCell("Pay", centerAligned);
 
-        employees.stream().forEach(employee -> {
-                        // Determine the type of employee
-                        String type = Optional.of(employee)
-                                .map(emp -> {
-                                    if (emp instanceof Volunteer) return "Volunteer";
-                                    if (emp instanceof SalariedEmployee) return "Salaried Employee";
-                                    if (emp instanceof HourlyEmployee) return "Hourly Employee";
-                                    return "Unknown";
-                                })
-                                .orElse("Unknown");
+        for (int i = start; i < end; i++) {
+            StaffMember employee = employees.get(i);
+            String type = (employee instanceof Volunteer) ? "Volunteer" :
+                    (employee instanceof SalariedEmployee) ? "Salaried Employee" :
+                            (employee instanceof HourlyEmployee) ? "Hourly Employee" : "Unknown";
 
-                        // Add common details
+            table.addCell(type, centerAligned);
+            table.addCell(String.valueOf(employee.getId()), centerAligned);
+            table.addCell(employee.getName(), centerAligned);
+            table.addCell(employee.getAddress(), centerAligned);
 
-                        table.addCell(type, centerAligned);
-                        table.addCell(String.valueOf(employee.getId()), centerAligned);
-                        table.addCell(employee.getName(), centerAligned);
-                        table.addCell(employee.getAddress(), centerAligned);
+            if (employee instanceof Volunteer) {
+                Volunteer v = (Volunteer) employee;
+                table.addCell(formatCurrency(v.getSalary()), centerAligned);
+                table.addCell("---", centerAligned);
+                table.addCell("---", centerAligned);
+                table.addCell("---", centerAligned);
+                table.addCell(formatCurrency(v.pay()), centerAligned);
+            } else if (employee instanceof SalariedEmployee) {
+                SalariedEmployee s = (SalariedEmployee) employee;
+                table.addCell(formatCurrency(s.getSalary()), centerAligned);
+                table.addCell(formatCurrency(s.getBonus()), centerAligned);
+                table.addCell("---", centerAligned);
+                table.addCell("---", centerAligned);
+                table.addCell(formatCurrency(s.pay()), centerAligned);
+            } else if (employee instanceof HourlyEmployee) {
+                HourlyEmployee h = (HourlyEmployee) employee;
+                table.addCell("---", centerAligned);
+                table.addCell("---", centerAligned);
+                table.addCell(String.valueOf(h.getHourWorked()), centerAligned);
+                table.addCell(formatCurrency(h.getRate()), centerAligned);
+                table.addCell(formatCurrency(h.pay()), centerAligned);
+            }
+        }
 
-                        // Add specific details based on employee type
-                        if (employee instanceof Volunteer) {
-                            Volunteer volunteer = (Volunteer) employee;
-                            table.addCell(formatCurrency(volunteer.getSalary()), centerAligned);
-                            table.addCell("---", centerAligned);
-                            table.addCell("---", centerAligned);
-                            table.addCell("---", centerAligned);
-                            table.addCell(formatCurrency(volunteer.pay()), centerAligned);
-                        } else if (employee instanceof SalariedEmployee) {
-                            SalariedEmployee salariedEmployee = (SalariedEmployee) employee;
-                            table.addCell(formatCurrency(salariedEmployee.getSalary()), centerAligned);
-                            table.addCell(formatCurrency(salariedEmployee.getBonus()), centerAligned);
-                            table.addCell("---", centerAligned);
-                            table.addCell("---", centerAligned);
-                            table.addCell(formatCurrency(salariedEmployee.pay()), centerAligned);
-                        } else if (employee instanceof HourlyEmployee) {
-                            HourlyEmployee hourlyEmployee = (HourlyEmployee) employee;
-                            table.addCell("---", centerAligned);
-                            table.addCell("---", centerAligned);
-                            table.addCell(String.valueOf(hourlyEmployee.getHourWorked()), centerAligned);
-                            table.addCell(formatCurrency(hourlyEmployee.getRate()), centerAligned);
-                            table.addCell(formatCurrency(hourlyEmployee.pay()), centerAligned);
-                        }
-                    });
-        // Print the table
         System.out.println(table.render());
-
+        System.out.println("Page: " + page + "/" + totalPages);
     }
+
     //Update Employee Method
     public static void updateEmployee(@NotNull List<StaffMember> employees) {
         Scanner sc = new Scanner(System.in);
